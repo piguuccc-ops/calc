@@ -31,15 +31,37 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Build debug APK
+      - name: Build a signed release APK
         working-directory: ${{ steps.find.outputs.dir }}
-        run: gradle assembleDebug --no-daemon --stacktrace
+        run: |
+          keytool -genkeypair -v -storetype PKCS12 \
+            -keystore ci.keystore -alias calccase \
+            -storepass calccase -keypass calccase \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Calc Case, OU=Personal, O=Personal, L=City, ST=State, C=HU"
+          gradle assembleRelease --no-daemon --stacktrace \
+            -Pandroid.injected.signing.store.file="$PWD/ci.keystore" \
+            -Pandroid.injected.signing.store.password=calccase \
+            -Pandroid.injected.signing.key.alias=calccase \
+            -Pandroid.injected.signing.key.password=calccase
+
+      - name: Inspect what we actually built
+        working-directory: ${{ steps.find.outputs.dir }}
+        run: |
+          APK=app/build/outputs/apk/release/app-release.apk
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          echo "=== size ==="; ls -l "$APK"
+          echo "=== signature ==="; "$BT/apksigner" verify --verbose --print-certs "$APK" || true
+          echo "=== manifest ==="; "$BT/aapt2" dump badging "$APK" | head -8
+          echo "=== debuggable? (want no match) ==="
+          "$BT/aapt2" dump xmltree --file AndroidManifest.xml "$APK" | grep -i debuggable || echo "  not debuggable — good"
+          echo "=== contents ==="; unzip -l "$APK"
 
       - name: Upload as a workflow artifact
         uses: actions/upload-artifact@v4
         with:
           name: calc-case-apk
-          path: ${{ steps.find.outputs.dir }}/app/build/outputs/apk/debug/app-debug.apk
+          path: ${{ steps.find.outputs.dir }}/app/build/outputs/apk/release/app-release.apk
 
       - name: Publish a release you can install from the phone
         uses: softprops/action-gh-release@v2
@@ -47,5 +69,5 @@ jobs:
           tag_name: v${{ github.run_number }}
           name: Calc Case v${{ github.run_number }}
           body: Tap the .apk below on your phone to install.
-          files: ${{ steps.find.outputs.dir }}/app/build/outputs/apk/debug/app-debug.apk
+          files: ${{ steps.find.outputs.dir }}/app/build/outputs/apk/release/app-release.apk
           fail_on_unmatched_files: true
