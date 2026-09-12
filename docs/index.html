@@ -421,6 +421,12 @@ hr.sep{border:0; border-top:1px solid var(--panel-line); margin:16px 0}
 "use strict";
 const NOM = 96/25.4, CARD_MM = 53.98;
 const $ = s => document.querySelector(s);
+/* Never write into the field someone is typing in: the normalised value would
+   eat a half-typed "5." before they reach the decimals. */
+function setField(sel, val){
+  const el = typeof sel === "string" ? $(sel) : sel;
+  if(el && el !== document.activeElement) el.value = val;
+}
 const stage=$("#stage"), keysEl=$("#keys"), marksEl=$("#marks"), lcd=$("#lcd"),
       exprEl=$("#expr"), resEl=$("#res"), barL=$("#barL"), barR=$("#barR"),
       noteT=$("#noteTitle"), noteB=$("#noteBody"), winFrame=$("#winFrame"),
@@ -775,7 +781,8 @@ function draw(){
       left:Math.max(8,(W-bw)/2)+"px", top:"92px"});
   } else bar.style.display = "none";
 
-  if(S.calH){
+  // the soft keyboard shrinks the viewport too — that isn't drift worth warning about
+  if(S.calH && !(typeof typing === "function" && typing(document.activeElement))){
     const drift = Math.abs(stage.clientHeight - S.calH);
     if(drift > 6 && !vpWarned){
       vpWarned = true;
@@ -1083,12 +1090,12 @@ function setMode(m){
 }
 function syncLayout(){
   const d = dims();
-  $("#f-offX").value = S.offX; $("#f-offY").value = S.offY;
-  $("#f-tol").value = S.tolMm; $("#f-debounce").value = S.debounceMs;
-  $("#f-flat").value = S.flatMm; $("#f-edge").value = S.edgeMm;
-  $("#f-gapX").value = S.gapX; $("#f-gapY").value = S.gapY;
+  setField("#f-offX", S.offX); setField("#f-offY", S.offY);
+  setField("#f-tol", S.tolMm); setField("#f-debounce", S.debounceMs);
+  setField("#f-flat", S.flatMm); setField("#f-edge", S.edgeMm);
+  setField("#f-gapX", S.gapX); setField("#f-gapY", S.gapY);
   for(const k of ["pitchX","keyW","pitchY","keyH","navH","navGap","winH","winGap"])
-    $("#g-"+k).value = S.geo[k];
+    setField("#g-"+k, S.geo[k]);
   const scrW = stage.clientWidth/S.pxPerMm, scrH = stage.clientHeight/S.pxPerMm;
   const flatSlack = S.flatMm - d.span;
   const vertLeft = scrH - d.totalH;
@@ -1127,9 +1134,9 @@ function syncLayout(){
   dumpJSON();
 }
 function syncScale(){
-  $("#f-ppmm").value = +S.pxPerMm.toFixed(3);
-  $("#f-screen").value = S.screenMm;
-  $("#cardRange").value = Math.round(S.pxPerMm*1000);
+  setField("#f-ppmm", +S.pxPerMm.toFixed(3));
+  setField("#f-screen", S.screenMm);
+  setField("#cardRange", Math.round(S.pxPerMm*1000));
   const off = 100*(S.pxPerMm/NOM - 1);
   chips("#scaleStat", [
     ["px / mm", S.pxPerMm.toFixed(3), ""],
@@ -1212,11 +1219,20 @@ $("#nBody").addEventListener("touchend", e=>{
 $("#barTog").addEventListener("click", e=>{
   barOn = !barOn; e.target.textContent = barOn ? "Done matching" : "Match a card"; draw();
 });
+/* While typing: take the value only once it's parseable AND in range, and never
+   write back — half-typed input has to survive. On blur: clamp and tidy. */
 function num(id, key, min, max, after){
-  $("#"+id).addEventListener("input", e=>{
+  const el = $("#"+id);
+  el.addEventListener("input", e=>{
     const v = parseFloat(e.target.value);
-    if(!isFinite(v)) return;
-    S[key] = Math.min(max, Math.max(min, v)); save(); draw(); if(after) after();
+    if(!isFinite(v) || v < min || v > max) return;
+    S[key] = v; save(); draw(); if(after) after();
+  });
+  el.addEventListener("change", e=>{
+    let v = parseFloat(e.target.value);
+    if(!isFinite(v)) v = S[key];
+    v = Math.min(max, Math.max(min, v));
+    S[key] = v; e.target.value = v; save(); draw(); if(after) after();
   });
 }
 num("f-flat","flatMm",20,200,syncLayout);
@@ -1225,10 +1241,17 @@ num("f-gapY","gapY",0,10,syncLayout);
 num("f-screen","screenMm",30,200,null);
 for(const [k,min,max] of [["pitchX",4,40],["keyW",3,40],["pitchY",4,40],["keyH",3,40],
     ["navH",3,40],["navGap",0,30],["winH",8,120],["winGap",0,30]]){
-  $("#g-"+k).addEventListener("input", e=>{
+  const el = $("#g-"+k);
+  el.addEventListener("input", e=>{
     const v = parseFloat(e.target.value);
-    if(!isFinite(v)) return;
-    S.geo[k] = Math.min(max, Math.max(min, v)); save(); draw(); syncLayout();
+    if(!isFinite(v) || v < min || v > max) return;
+    S.geo[k] = v; save(); draw(); syncLayout();
+  });
+  el.addEventListener("change", e=>{
+    let v = parseFloat(e.target.value);
+    if(!isFinite(v)) v = S.geo[k];
+    v = Math.min(max, Math.max(min, v));
+    S.geo[k] = v; e.target.value = v; save(); draw(); syncLayout();
   });
 }
 const scaleUnset = () => Math.abs(S.pxPerMm - NOM) < 0.01;
@@ -1343,7 +1366,12 @@ $("#wakeTog").addEventListener("click", async e=>{
   }catch(_){ e.target.textContent="Wake lock unavailable"; }
 });
 addEventListener("resize", ()=>{ draw(); if(mode==="layout"){ syncScale(); syncLayout(); } });
+const typing = el => !!el && (el.isContentEditable ||
+  el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT");
 document.addEventListener("keydown", e=>{
+  // a field in the settings sheet owns the keyboard while it's focused —
+  // otherwise every digit typed into it also lands on the calculator
+  if(typing(e.target)) return;
   if(mode === "guide" && (e.key === "ArrowLeft" || e.key === "ArrowRight")){
     goGuide(e.key === "ArrowRight" ? 1 : -1); e.preventDefault(); return;
   }

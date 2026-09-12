@@ -1,6 +1,11 @@
-/* Offline cache. The rig is one self-contained page, so precache it whole and
-   serve cache-first — it must work with no signal, on a bench, in a workshop. */
-const CACHE = "calccase-v1";
+/* Offline cache for the rig.
+ *
+ * The page must work on a bench with no signal, but it also has to pick up new
+ * versions without anyone clearing site data. So: the page itself is
+ * network-first (fresh when online, cached when not), everything else is
+ * cache-first (icons and the manifest never change).
+ */
+const CACHE = "calccase-v2";
 const ASSETS = [
   "./", "./index.html", "./manifest.webmanifest",
   "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png"
@@ -22,17 +27,41 @@ self.addEventListener("activate", e => {
   );
 });
 
+const isPage = req => {
+  if (req.mode === "navigate") return true;
+  const p = new URL(req.url).pathname;
+  return p.endsWith("/") || p.endsWith("/index.html");
+};
+
 self.addEventListener("fetch", e => {
-  if (e.request.method !== "GET") return;
+  const req = e.request;
+  if (req.method !== "GET") return;
+  if (new URL(req.url).origin !== location.origin) return;   // let fonts fail on their own
+
+  if (isPage(req)) {
+    e.respondWith(
+      fetch(req)
+        .then(res => {
+          if (res && res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE).then(c => c.put("./index.html", copy));
+          }
+          return res;
+        })
+        .catch(() => caches.match("./index.html").then(r => r || caches.match("./")))
+    );
+    return;
+  }
+
   e.respondWith(
-    caches.match(e.request).then(hit =>
-      hit || fetch(e.request).then(res => {
-        if (res && res.ok && new URL(e.request.url).origin === location.origin) {
+    caches.match(req).then(hit =>
+      hit || fetch(req).then(res => {
+        if (res && res.ok) {
           const copy = res.clone();
-          caches.open(CACHE).then(c => c.put(e.request, copy));
+          caches.open(CACHE).then(c => c.put(req, copy));
         }
         return res;
-      }).catch(() => caches.match("./index.html"))
+      })
     )
   );
 });
