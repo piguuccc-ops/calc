@@ -1,0 +1,32 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'hu.michael.calccase'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "hu.michael.calccase"
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        debug {
+            // installable straight off a GitHub Release, no keystore needed
+        }
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+// no dependencies at all — plain WebView on the platform APIs
+dependencies { }
