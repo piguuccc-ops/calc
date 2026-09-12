@@ -27,7 +27,7 @@ img{max-width:100%}
 <style>
 :root{
   --chassis:#D5D7CE; --chassis-2:#C6C9BE; --ink:#1B1E19; --ink-soft:#5A5F55;
-  --line:#ABAFA3; --lcd-bg:#232821; --lcd-ink:#B9D9A6; --lcd-dim:#5C7150;
+  --line:#ABAFA3; --lcd-bg:#C2CFB2; --lcd-ink:#141A0F; --lcd-dim:#5F6E51;
   --key-num:#3A3E37; --key-num-ink:#EDEDE6; --key-fn:#585D53; --key-op:#2B2F29;
   --accent:#DE7A0F; --on-accent:#1B1E19; --panel:#E7E8E1; --panel-2:#DADCD3;
   --panel-line:#B8BCB0; --good:#3E7A46; --warn:#B4620E; --bad:#A33528;
@@ -36,7 +36,7 @@ img{max-width:100%}
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --chassis:#1A1D19; --chassis-2:#141713; --ink:#E3E4DC; --ink-soft:#9BA093;
-    --line:#343A31; --lcd-bg:#0D110C; --lcd-ink:#B9D9A6; --lcd-dim:#46583D;
+    --line:#343A31; --lcd-bg:#C2CFB2; --lcd-ink:#141A0F; --lcd-dim:#5F6E51;
     --key-num:#2C302A; --key-num-ink:#E3E4DC; --key-fn:#3C4139; --key-op:#22261F;
     --accent:#EE8C18; --on-accent:#17190F; --panel:#1F231E; --panel-2:#171A15;
     --panel-line:#353B32; --good:#6FB077; --warn:#E0982F; --bad:#D9705F;
@@ -45,7 +45,7 @@ img{max-width:100%}
 }
 :root[data-theme="dark"]{
   --chassis:#1A1D19; --chassis-2:#141713; --ink:#E3E4DC; --ink-soft:#9BA093;
-  --line:#343A31; --lcd-bg:#0D110C; --lcd-ink:#B9D9A6; --lcd-dim:#46583D;
+  --line:#343A31; --lcd-bg:#C2CFB2; --lcd-ink:#141A0F; --lcd-dim:#5F6E51;
   --key-num:#2C302A; --key-num-ink:#E3E4DC; --key-fn:#3C4139; --key-op:#22261F;
   --accent:#EE8C18; --on-accent:#17190F; --panel:#1F231E; --panel-2:#171A15;
   --panel-line:#353B32; --good:#6FB077; --warn:#E0982F; --bad:#D9705F;
@@ -74,23 +74,46 @@ button{font:inherit; color:inherit; cursor:pointer}
   display:flex; flex-direction:column; overflow:hidden;
   box-shadow:inset 0 2px 6px rgba(0,0,0,.5);
 }
-#lcdInner{flex:1; min-height:0; display:flex; flex-direction:column; padding:4% 4% 2%}
-#expr{
-  flex:1; min-height:0; font-family:"IBM Plex Mono", ui-monospace, monospace; font-weight:500;
-  color:var(--lcd-dim); text-align:right; word-break:break-all; overflow:hidden;
-  display:flex; align-items:flex-start; justify-content:flex-end;
+#lcdInner{flex:1; min-height:0; display:flex; flex-direction:column;
+  padding:1% 3% 3%; gap:2%; color:var(--lcd-ink)}
+#dots{
+  flex:1 1 auto; min-height:0; align-self:center;
+  image-rendering:pixelated; image-rendering:crisp-edges;
 }
-#expr em{font-style:normal; color:var(--lcd-ink); border-right:2px solid var(--lcd-ink); margin-left:1px}
+#stage[data-view="notes"] #dots{display:none}
+#expr em{
+  font-style:normal; border-right:.12em solid currentColor; margin-left:1px;
+  animation:caret 1.1s step-end infinite;
+}
+@keyframes caret{50%{border-color:transparent}}
+@media (prefers-reduced-motion: reduce){#expr em{animation:none}}
 #res{
+  flex:0 0 auto; max-height:54%; overflow:hidden;
   font-family:"IBM Plex Mono", ui-monospace, monospace; font-weight:600;
   font-variant-numeric:tabular-nums; color:var(--lcd-ink); text-align:right;
-  line-height:1.05; white-space:nowrap; overflow:hidden;
+  line-height:1.15; white-space:nowrap;
 }
 #bar{
   display:flex; justify-content:space-between; gap:8px; align-items:center;
   font:700 9px/1.5 Archivo; letter-spacing:.13em; text-transform:uppercase;
-  color:var(--lcd-dim); padding:0 4% 3%; min-height:14px;
+  color:var(--lcd-dim); padding:3% 4% 0; min-height:14px;
 }
+#barC{letter-spacing:.16em}
+
+/* ---- natural display: stacked fractions, radicals with a vinculum ---- */
+.frac{
+  display:inline-flex; flex-direction:column; align-items:center;
+  vertical-align:-0.48em; margin:0 .14em;
+}
+.frac > .num{padding:0 .22em .05em; line-height:1.08}
+.frac > .den{padding:.05em .22em 0; line-height:1.08; border-top:.075em solid currentColor}
+.rad{display:inline-flex; align-items:flex-start; margin:0 .05em}
+.rad > .rsign{line-height:1; margin-right:-.04em}
+.rad > .rbody{
+  border-top:.075em solid currentColor;
+  padding:.06em .14em 0 .08em; margin-top:.14em; line-height:1.08;
+}
+.exp{font-size:.62em; vertical-align:.58em; line-height:1}
 #note{flex:1; min-height:0; display:none; flex-direction:column; gap:2%; overflow:hidden}
 #noteTitle{
   font:700 10px/1.2 Archivo; letter-spacing:.15em; text-transform:uppercase;
@@ -110,7 +133,7 @@ button{font:inherit; color:inherit; cursor:pointer}
 #note.hasImg #noteImg{display:block}
 #note.imgGone #noteImg{display:none}
 #stage[data-view="notes"] #note{display:flex}
-#stage[data-view="notes"] #expr, #stage[data-view="notes"] #res{display:none}
+
 
 .key{
   position:absolute; border:0; border-radius:3px; padding:0;
@@ -158,6 +181,10 @@ button{font:inherit; color:inherit; cursor:pointer}
 #stage[data-black="on"] #lcd{
   background:#000; border-color:#000; box-shadow:none;
 }
+#stage[data-black="on"] #lcdInner,
+#stage[data-black="on"] #noteBody{color:#B9D9A6}
+#stage[data-black="on"] #bar{color:#5C7150}
+#stage[data-black="on"] #noteTitle{color:#E0982F}
 #stage[data-black="on"] #noteImg{opacity:.92}
 body.black{background:#000}
 
@@ -291,12 +318,11 @@ hr.sep{border:0; border-top:1px solid var(--panel-line); margin:16px 0}
 
 <div id="stage">
   <div class="mmbox" id="lcd">
+    <div id="bar"><span id="barL"></span><span id="barC">MATH</span><span id="barR"></span></div>
     <div id="lcdInner">
-      <div id="expr"></div>
-      <div id="res">0</div>
+      <canvas id="dots" aria-label="calculator display"></canvas>
       <div id="note"><div id="noteTitle"></div><img id="noteImg" alt=""><div id="noteBody"></div></div>
     </div>
-    <div id="bar"><span id="barL"></span><span id="barR"></span></div>
   </div>
   <div class="mmbox" id="winFrame"></div>
   <div id="keys"></div>
@@ -442,7 +468,7 @@ function setField(sel, val){
   if(el && el !== document.activeElement) el.value = val;
 }
 const stage=$("#stage"), keysEl=$("#keys"), marksEl=$("#marks"), lcd=$("#lcd"),
-      exprEl=$("#expr"), resEl=$("#res"), barL=$("#barL"), barR=$("#barR"),
+      dotsEl=$("#dots"), barL=$("#barL"), barC=$("#barC"), barR=$("#barR"),
       noteT=$("#noteTitle"), noteB=$("#noteBody"), winFrame=$("#winFrame"),
       caseMask=$("#caseMask"), panel=$("#panel");
 
@@ -674,19 +700,8 @@ const KEYS = [
 ];
 
 let mode="calc", view="calc", chromeOn=true, maskOn=false, edgeOn=false, barOn=false;
-let vpWarned = false, baseResPx = 24;
+let vpWarned = false;
 
-/* A 12-digit answer is wider than a 62 mm window, so step the readout down
-   until it fits rather than clipping the last digits off the right edge. */
-function fitRes(){
-  let size = baseResPx;
-  resEl.style.fontSize = size + "px";
-  let guard = 40;
-  while(resEl.scrollWidth > resEl.clientWidth && size > 11 && guard--){
-    size -= 1;
-    resEl.style.fontSize = size + "px";
-  }
-}
 let cal=null, contacts=[], contactSeq=0, misses=0, wakeLock=null;
 let notePage=0, holdTimer=null;
 
@@ -794,8 +809,6 @@ function draw(){
     el.style.width = d.winW*f.p+"px"; el.style.height = d.winH*f.p+"px";
   }
   const H = d.winH*f.p;
-  baseResPx = Math.max(16, Math.min(H*0.30, 54)); fitRes();
-  exprEl.style.fontSize = Math.max(10, Math.min(H*0.115, 20))+"px";
   noteB.style.fontSize = Math.max(9, Math.min(H*0.098, 16))+"px";
   winFrame.style.display = mode==="layout" ? "block" : "none";
 
@@ -852,84 +865,542 @@ function drawMarks(f){
 }
 
 /* ---------------- expression engine ---------------- */
-let src = "", lastVal = null, errMsg = "";
-const DISP = {"*":"×","/":"÷","-":"−"};
-function evaluate(s){
+let src = "", lastVal = null, lastExact = null, errMsg = "";
+let answered = false, showDecimal = false;
+
+/* ---------- exact arithmetic ----------
+   A value is a sum of  q · √r · πᵖ  terms with rational q, so √45 + ½√80
+   settles on 5√5 instead of 11.1803398875. Any step that can't be held in
+   that shape returns null and the decimal takes over. */
+
+function bgcd(a, b){ a = a<0n?-a:a; b = b<0n?-b:b; while(b){ const t = a % b; a = b; b = t; } return a; }
+function Q(n, d = 1n){
+  n = BigInt(n); d = BigInt(d);
+  if(d === 0n) throw "÷ 0";
+  if(d < 0n){ n = -n; d = -d; }
+  const g = bgcd(n, d) || 1n;
+  return { n: n/g, d: d/g };
+}
+const rAdd = (a,b) => Q(a.n*b.d + b.n*a.d, a.d*b.d);
+const rMul = (a,b) => Q(a.n*b.n, a.d*b.d);
+const rDiv = (a,b) => { if(b.n === 0n) throw "÷ 0"; return Q(a.n*b.d, a.d*b.n); };
+const rNeg = a => ({ n: -a.n, d: a.d });
+const rNum = a => Number(a.n) / Number(a.d);
+
+const SURD_MAX = 1e7;                  // beyond this, leave the radicand alone
+function simpSurd(n){                  // n = k²·m  →  [k, m]
+  if(!Number.isSafeInteger(n) || n <= 1 || n > SURD_MAX) return [1, n];
+  let k = 1, m = n;
+  for(let i = 2; i*i <= m; i++){
+    const sq = i*i;
+    while(m % sq === 0){ m /= sq; k *= i; }
+  }
+  return [k, m];
+}
+
+/* Exact = array of {c: Rational, r: int radicand ≥ 1, p: int π power ≥ 0} */
+function exNorm(terms){
+  const by = new Map();
+  for(const t of terms){
+    if(t.c.n === 0n) continue;
+    const key = t.r + "|" + t.p;
+    by.set(key, by.has(key) ? { ...t, c: rAdd(by.get(key).c, t.c) } : t);
+  }
+  return [...by.values()].filter(t => t.c.n !== 0n)
+    .sort((a,b) => (a.p - b.p) || (a.r - b.r));
+}
+const exRat = q => exNorm([{ c: q, r: 1, p: 0 }]);
+const exNeg = a => a.map(t => ({ ...t, c: rNeg(t.c) }));
+const exAdd = (a,b) => exNorm([...a, ...b]);
+function exMul(a, b){
+  const out = [];
+  for(const x of a) for(const y of b){
+    const rr = x.r * y.r;
+    if(!Number.isSafeInteger(rr)) return null;
+    const [k, m] = simpSurd(rr);
+    out.push({ c: rMul(rMul(x.c, y.c), Q(BigInt(k))), r: m, p: x.p + y.p });
+  }
+  return exNorm(out);
+}
+function exDiv(a, b){
+  if(b.length === 0) throw "÷ 0";
+  if(b.length !== 1) return null;                 // no conjugate rationalising
+  const t = b[0];
+  if(t.p > 0 && a.some(x => x.p < t.p)) return null;
+  // 1/(c·√r) = 1/(c·r) · √r
+  const inv = { c: rDiv(Q(1n), rMul(t.c, Q(BigInt(t.r)))), r: t.r, p: 0 };
+  let out = exMul(a, [inv]);
+  if(!out) return null;
+  if(t.p) out = out.map(x => ({ ...x, p: x.p - t.p }));
+  return exNorm(out);
+}
+function exSqrt(a){
+  if(a.length === 0) return [];
+  if(a.length !== 1) return null;
+  const t = a[0];
+  if(t.r !== 1 || t.p !== 0) return null;
+  if(t.c.n < 0n) throw "√ of −";
+  const nd = t.c.n * t.c.d;                        // √(n/d) = √(n·d)/d
+  if(nd > BigInt(Number.MAX_SAFE_INTEGER)) return null;
+  const [k, m] = simpSurd(Number(nd));
+  return exNorm([{ c: Q(BigInt(k), t.c.d), r: m, p: 0 }]);
+}
+function exPow(a, b){
+  if(b.length === 0) return exRat(Q(1n));
+  if(b.length !== 1) return null;
+  const t = b[0];
+  if(t.r !== 1 || t.p !== 0 || t.c.d !== 1n) return null;
+  let e = Number(t.c.n);
+  if(!Number.isSafeInteger(e) || Math.abs(e) > 64) return null;
+  const neg = e < 0; e = Math.abs(e);
+  let acc = exRat(Q(1n));
+  for(let i = 0; i < e; i++){ acc = exMul(acc, a); if(!acc) return null; }
+  return neg ? exDiv(exRat(Q(1n)), acc) : acc;
+}
+const exVal = a => a.reduce((s,t) => s + rNum(t.c) * Math.sqrt(t.r) * Math.pow(Math.PI, t.p), 0);
+const exIsPlain = a => a.length === 0 ||
+  (a.length === 1 && a[0].r === 1 && a[0].p === 0 && a[0].c.d === 1n);
+
+/* ---------- parser: text → AST ---------- */
+const PREC = { "+":1, "-":1, "*":2, "/":2, "neg":1, "^":4, "%":5, "n":6, "pi":6, "sqrt":6 };
+function parseExpr(s){
   let i = 0;
   const isNum = ch => ch >= "0" && ch <= "9" || ch === ".";
   function expr(){
     let v = term();
-    while(s[i]==="+"||s[i]==="-"){ const op=s[i++]; const r=term(); v = op==="+"?v+r:v-r; }
+    while(s[i] === "+" || s[i] === "-"){ const op = s[i++]; v = { t: op, a: v, b: term() }; }
     return v;
   }
   function term(){
     let v = unary();
     for(;;){
-      if(s[i]==="*"||s[i]==="/"){
-        const op=s[i++], r=unary();
-        if(op==="/"&&r===0) throw "÷ 0";
-        v = op==="*" ? v*r : v/r;
-      } else if(s[i]==="("||s[i]==="π"||s[i]==="√"||isNum(s[i])){
-        v = v * unary();                       // implicit multiplication
-      } else break;
+      if(s[i] === "*" || s[i] === "/"){ const op = s[i++]; v = { t: op, a: v, b: unary() }; }
+      else if(s[i] === "(" || s[i] === "π" || s[i] === "√" || isNum(s[i]))
+        v = { t: "*", a: v, b: unary(), im: true };
+      else break;
     }
     return v;
   }
   function unary(){
-    if(s[i]==="-"){ i++; return -unary(); }
-    if(s[i]==="+"){ i++; return unary(); }
-    return pow();
+    if(s[i] === "-"){ i++; return { t: "neg", a: unary() }; }
+    if(s[i] === "+"){ i++; return unary(); }
+    return pw();
   }
-  function pow(){
-    const b = postfix();
-    if(s[i]==="^"){ i++; return Math.pow(b, unary()); }
-    return b;
+  function pw(){
+    const base = postfix();
+    if(s[i] === "^"){ i++; return { t: "^", a: base, b: unary() }; }
+    return base;
   }
   function postfix(){
     let v = primary();
-    while(s[i]==="%"){ i++; v = v/100; }
+    while(s[i] === "%"){ i++; v = { t: "%", a: v }; }
     return v;
   }
   function primary(){
-    if(s[i]==="√"){ i++; const v = pow(); if(v<0) throw "√ of −"; return Math.sqrt(v); }
-    if(s[i]==="π"){ i++; return Math.PI; }
-    if(s[i]==="("){ i++; const v = expr(); if(s[i]!==")") throw "missing )"; i++; return v; }
-    let j = i; while(j<s.length && isNum(s[j])) j++;
-    if(j===i) throw "incomplete";
-    const n = parseFloat(s.slice(i,j)); i = j;
-    if(!isFinite(n)) throw "incomplete";
-    return n;
+    if(s[i] === "√"){ i++; return { t: "sqrt", a: pw() }; }
+    if(s[i] === "π"){ i++; return { t: "pi" }; }
+    if(s[i] === "("){ i++; const v = expr(); if(s[i] !== ")") throw "missing )"; i++; return v; }
+    let j = i; while(j < s.length && isNum(s[j])) j++;
+    if(j === i) throw "incomplete";
+    const lit = s.slice(i, j); i = j;
+    if(!isFinite(parseFloat(lit))) throw "incomplete";
+    return { t: "n", v: lit };
   }
   const v = expr();
   if(i < s.length) throw "incomplete";
-  if(!isFinite(v)) throw "overflow";
   return v;
 }
+function litRat(lit){
+  const dot = lit.indexOf(".");
+  if(dot < 0) return Q(BigInt(lit || "0"));
+  const whole = lit.slice(0, dot) || "0", frac = lit.slice(dot+1) || "0";
+  return Q(BigInt(whole + frac), 10n ** BigInt(frac.length));
+}
+
+/* ---------- evaluation ---------- */
+function evalExact(n){
+  switch(n.t){
+    case "n":    return exRat(litRat(n.v));
+    case "pi":   return exNorm([{ c: Q(1n), r: 1, p: 1 }]);
+    case "neg":  { const a = evalExact(n.a); return a && exNeg(a); }
+    case "%":    { const a = evalExact(n.a); return a && exMul(a, exRat(Q(1n, 100n))); }
+    case "sqrt": { const a = evalExact(n.a); return a && exSqrt(a); }
+    case "+": case "-": case "*": case "/": case "^": {
+      const a = evalExact(n.a); if(!a) return null;
+      const b = evalExact(n.b); if(!b) return null;
+      if(n.t === "+") return exAdd(a, b);
+      if(n.t === "-") return exAdd(a, exNeg(b));
+      if(n.t === "*") return exMul(a, b);
+      if(n.t === "/") return exDiv(a, b);
+      return exPow(a, b);
+    }
+  }
+  return null;
+}
+function evalNum(n){
+  switch(n.t){
+    case "n":    return parseFloat(n.v);
+    case "pi":   return Math.PI;
+    case "neg":  return -evalNum(n.a);
+    case "%":    return evalNum(n.a) / 100;
+    case "sqrt": { const v = evalNum(n.a); if(v < 0) throw "√ of −"; return Math.sqrt(v); }
+    case "+":    return evalNum(n.a) + evalNum(n.b);
+    case "-":    return evalNum(n.a) - evalNum(n.b);
+    case "*":    return evalNum(n.a) * evalNum(n.b);
+    case "/":    { const d = evalNum(n.b); if(d === 0) throw "÷ 0"; return evalNum(n.a) / d; }
+    case "^":    return Math.pow(evalNum(n.a), evalNum(n.b));
+  }
+  throw "incomplete";
+}
+
+/* ---------------- dot-matrix display ----------------
+   The calculator half of the window is a real LCD: a fixed grid of square
+   dots that are either lit or not. Glyphs come from a 5×7 bitmap font and
+   every measurement below is in whole dots, so nothing lands half-on a dot
+   the way scaled vector text would. Notes keep their smooth DOM text. */
+
+const GW = 5, GH = 7, GADV = 6;        // glyph box, and advance including the gap
+const FONT = {
+  "0":["01110","10001","10011","10101","11001","10001","01110"],
+  "1":["00100","01100","00100","00100","00100","00100","01110"],
+  "2":["01110","10001","00001","00010","00100","01000","11111"],
+  "3":["11111","00010","00100","00010","00001","10001","01110"],
+  "4":["00010","00110","01010","10010","11111","00010","00010"],
+  "5":["11111","10000","11110","00001","00001","10001","01110"],
+  "6":["00110","01000","10000","11110","10001","10001","01110"],
+  "7":["11111","00001","00010","00100","01000","01000","01000"],
+  "8":["01110","10001","10001","01110","10001","10001","01110"],
+  "9":["01110","10001","10001","01111","00001","00010","01100"],
+  ".":["00000","00000","00000","00000","00000","01100","01100"],
+  "+":["00000","00100","00100","11111","00100","00100","00000"],
+  "-":["00000","00000","00000","11111","00000","00000","00000"],
+  "*":["00000","10001","01010","00100","01010","10001","00000"],
+  "/":["00000","00100","00000","11111","00000","00100","00000"],
+  "(":["00010","00100","01000","01000","01000","00100","00010"],
+  ")":["01000","00100","00010","00010","00010","00100","01000"],
+  "%":["11001","11011","00010","00100","01000","11011","10011"],
+  "p":["00000","00000","11111","01010","01010","01010","10011"],   // π
+  "?":["01110","10001","00010","00100","00100","00000","00100"]
+};
+const glyphOf = ch => FONT[ch] || FONT["?"];
+
+/* A box is {w, top, bot, paint(g, x, base)} with top/bot as dot offsets from
+   the baseline — negative is up. A plain glyph sits on rows base-6 … base. */
+function bRun(str){
+  const chars = [...str];
+  return {
+    w: chars.length ? chars.length * GADV - 1 : 0,
+    top: -(GH - 1), bot: 0,
+    paint(g, x, base){
+      chars.forEach((ch, i) => {
+        const rows = glyphOf(ch);
+        for(let r = 0; r < GH; r++)
+          for(let c = 0; c < GW; c++)
+            if(rows[r][c] === "1") g.set(x + i*GADV + c, base - (GH-1) + r);
+      });
+    }
+  };
+}
+function bRow(parts){                                  // side by side, shared baseline
+  const kids = parts.filter(Boolean);
+  if(!kids.length) return bRun("");
+  let w = 0; kids.forEach((k,i) => { w += k.w + (i ? 1 : 0); });
+  return {
+    w,
+    top: Math.min(...kids.map(k => k.top)),
+    bot: Math.max(...kids.map(k => k.bot)),
+    paint(g, x, base){ let cx = x; kids.forEach((k,i) => { if(i) cx += 1; k.paint(g, cx, base); cx += k.w; }); }
+  };
+}
+function bFrac(N, D){
+  const bar = -3;                                      // the math axis
+  const nBase = bar - 2 - N.bot, dBase = bar + 2 - D.top;
+  const w = Math.max(N.w, D.w) + 2;
+  return {
+    w, top: nBase + N.top, bot: dBase + D.bot,
+    paint(g, x, base){
+      for(let i = 0; i < w; i++) g.set(x + i, base + bar);
+      N.paint(g, x + Math.floor((w - N.w)/2), base + nBase);
+      D.paint(g, x + Math.floor((w - D.w)/2), base + dBase);
+    }
+  };
+}
+function bSqrt(B){
+  const hookW = 4, top = B.top - 2;
+  return {
+    w: hookW + B.w + 2, top, bot: Math.max(B.bot, 0),
+    paint(g, x, base){
+      const t = base + top, b = base + Math.max(B.bot, 0);
+      g.set(x, b - 2); g.set(x + 1, b - 1);                      // the tick
+      for(let y = t; y <= b; y++) g.set(x + 2, y);               // upright stroke
+      for(let i = 2; i < hookW + B.w + 2; i++) g.set(x + i, t);  // vinculum
+      B.paint(g, x + hookW, base);
+    }
+  };
+}
+function bPow(Base, Exp){
+  const lift = Base.top - 1;
+  return {
+    w: Base.w + 1 + Exp.w,
+    top: Math.min(Base.top, lift + Exp.top), bot: Base.bot,
+    paint(g, x, base){ Base.paint(g, x, base); Exp.paint(g, x + Base.w + 1, base + lift); }
+  };
+}
+function bParen(inner){
+  // grow the bracket to the height of what it holds
+  const h = inner.bot - inner.top + 1;
+  const mk = left => ({
+    w: 2, top: inner.top, bot: inner.bot,
+    paint(g, x, base){
+      const t = base + inner.top, b = base + inner.bot;
+      for(let y = t + 1; y < b; y++) g.set(x + (left ? 0 : 1), y);
+      g.set(x + (left ? 1 : 0), t); g.set(x + (left ? 1 : 0), b);
+    }
+  });
+  return h <= GH ? bRow([bRun("("), inner, bRun(")")]) : bRow([mk(true), inner, mk(false)]);
+}
+
+const DPREC = { "+":1, "-":1, "*":2, "/":2, "neg":1, "^":4, "%":5, "n":6, "pi":6, "sqrt":6 };
+function dotBox(n, min){
+  const wrap = box => DPREC[n.t] < min ? bParen(box) : box;
+  switch(n.t){
+    case "n":    return bRun(n.v);
+    case "pi":   return bRun("p");
+    case "sqrt": return bSqrt(dotBox(n.a, 0));
+    case "/":    return bFrac(dotBox(n.a, 0), dotBox(n.b, 0));
+    case "neg":  return wrap(bRow([bRun("-"), dotBox(n.a, 2)]));
+    case "%":    return wrap(bRow([dotBox(n.a, 5), bRun("%")]));
+    case "^":    return wrap(bPow(dotBox(n.a, 5), dotBox(n.b, 0)));
+    case "*":    return wrap(bRow(n.im ? [dotBox(n.a,2), dotBox(n.b,2)]
+                                       : [dotBox(n.a,2), bRun("*"), dotBox(n.b,2)]));
+    case "+":    return wrap(bRow([dotBox(n.a,1), bRun("+"), dotBox(n.b,1)]));
+    case "-":    return wrap(bRow([dotBox(n.a,1), bRun("-"), dotBox(n.b,2)]));
+  }
+  return bRun("");
+}
+
+/** An exact value as the same node shapes, so one layout serves both lines. */
+function exToNode(a){
+  if(a.length === 0) return { t:"n", v:"0" };
+  const termNode = t => {
+    const absN = t.c.n < 0n ? -t.c.n : t.c.n;
+    const fs = [];
+    if(t.r > 1) fs.push({ t:"sqrt", a:{ t:"n", v:String(t.r) } });
+    if(t.p === 1) fs.push({ t:"pi" });
+    else if(t.p > 1) fs.push({ t:"^", a:{ t:"pi" }, b:{ t:"n", v:String(t.p) } });
+    let body = (absN === 1n && fs.length) ? null : { t:"n", v:String(absN) };
+    for(const f of fs) body = body ? { t:"*", a:body, b:f, im:true } : f;
+    return t.c.d === 1n ? body : { t:"/", a:body, b:{ t:"n", v:String(t.c.d) } };
+  };
+  let node = null;
+  a.forEach((t, i) => {
+    const part = termNode(t), neg = t.c.n < 0n;
+    if(i === 0) node = neg ? { t:"neg", a:part } : part;
+    else node = { t: neg ? "-" : "+", a:node, b:part };
+  });
+  return node;
+}
+
+/* ---------- painting ---------- */
+function dotGrid(cols, rows){
+  const on = new Uint8Array(cols * rows);
+  return {
+    cols, rows,
+    set(x, y){
+      x = Math.round(x); y = Math.round(y);
+      if(x >= 0 && y >= 0 && x < cols && y < rows) on[y*cols + x] = 1;
+    },
+    at(x, y){ return on[y*cols + x]; }
+  };
+}
+function paintDots(cv, g, ink, off, dot, dpr){
+  const w = g.cols * dot, h = g.rows * dot;
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+  cv.style.width = w + "px"; cv.style.height = h + "px";
+  const c = cv.getContext("2d");
+  c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  c.clearRect(0, 0, w, h);
+  // Dots butt up against each other, the way they do on a real panel: the
+  // unlit field is then just a flat tint, so it costs one fill, not thousands.
+  if(off){ c.fillStyle = off; c.fillRect(0, 0, w, h); }
+  c.fillStyle = ink;
+  for(let y = 0; y < g.rows; y++) for(let x = 0; x < g.cols; x++)
+    if(g.at(x,y)) c.fillRect(x*dot, y*dot, dot, dot);
+}
+
+/* ---------- natural display ---------- */
+const elm = (cls, ...kids) => {
+  const d = document.createElement("span");
+  if(cls) d.className = cls;
+  for(const k of kids) d.append(k);
+  return d;
+};
+const tx = s => document.createTextNode(s);
+const frac = (num, den) => elm("frac", elm("num", num), elm("den", den));
+const radical = body => elm("rad", elm("rsign", tx("√")), elm("rbody", body));
+
+function draw_(n, min){
+  const wrap = kids => PREC[n.t] < min ? elm(null, tx("("), ...kids, tx(")")) : elm(null, ...kids);
+  switch(n.t){
+    case "n":    return tx(n.v);
+    case "pi":   return tx("π");
+    case "sqrt": return radical(draw_(n.a, 0));
+    case "/":    return frac(draw_(n.a, 0), draw_(n.b, 0));
+    case "neg":  return wrap([tx("−"), draw_(n.a, 2)]);
+    case "%":    return wrap([draw_(n.a, 5), tx("%")]);
+    case "^":    return wrap([draw_(n.a, 5), elm("exp", draw_(n.b, 0))]);
+    case "*":    return wrap([draw_(n.a, 2), ...(n.im ? [] : [tx("×")]), draw_(n.b, 2)]);
+    case "+":    return wrap([draw_(n.a, 1), tx("+"), draw_(n.b, 1)]);
+    case "-":    return wrap([draw_(n.a, 1), tx("−"), draw_(n.b, 2)]);
+  }
+  return tx("");
+}
+
+/** One q·√r·πᵖ term as DOM, coefficient taken positive. */
+function termDom(t){
+  const c = t.c, absN = c.n < 0n ? -c.n : c.n;
+  const factors = [];
+  if(t.r > 1) factors.push(radical(tx(String(t.r))));
+  if(t.p === 1) factors.push(tx("π"));
+  else if(t.p > 1) factors.push(elm(null, tx("π"), elm("exp", tx(String(t.p)))));
+  const head = (absN === 1n && factors.length) ? [] : [tx(String(absN))];
+  const top = elm(null, ...head, ...factors);
+  return c.d === 1n ? top : frac(top, tx(String(c.d)));
+}
+function exDom(a){
+  if(a.length === 0) return tx("0");
+  const out = elm(null);
+  a.forEach((t, i) => {
+    const negTerm = t.c.n < 0n;
+    if(i === 0){ if(negTerm) out.append(tx("−")); }
+    else out.append(tx(negTerm ? "−" : "+"));
+    out.append(termDom(t));
+  });
+  return out;
+}
+/** Linear text for the same value, so an answer can be typed back in. */
+function exToInput(a){
+  if(a.length === 0) return "0";
+  const part = t => {
+    const absN = t.c.n < 0n ? -t.c.n : t.c.n;
+    let f = "";
+    if(t.r > 1) f += "√" + t.r;
+    if(t.p === 1) f += "π";
+    else if(t.p > 1) f += "π^" + t.p;
+    const head = (absN === 1n && f) ? "" : String(absN);
+    const body = head + f;
+    return t.c.d === 1n ? body : "(" + body + "/" + t.c.d + ")";
+  };
+  let s = "";
+  a.forEach((t, i) => {
+    const neg = t.c.n < 0n;
+    s += i === 0 ? (neg ? "-" : "") : (neg ? "-" : "+");
+    s += part(t);
+  });
+  return a.length > 1 ? "(" + s + ")" : s;
+}
+
 function fmt(n){
-  if(n===0) return "0";
+  if(!isFinite(n)) return "Error";
+  if(n === 0) return "0";
   const a = Math.abs(n);
-  if(a>=1e12 || a<1e-9) return n.toExponential(6).replace("e+","e");
+  if(a >= 1e12 || a < 1e-9) return n.toExponential(6).replace("e+","e");
   let t = Number(n.toPrecision(12)).toString();
   if(t.replace(/[-.]/g,"").length > 12) t = Number(n.toPrecision(10)).toString();
   return t;
 }
-function refresh(){
-  exprEl.textContent = "";
-  const txt = src.replace(/[*\/-]/g, ch => DISP[ch]);
-  exprEl.append(document.createTextNode(txt));
-  const cur = document.createElement("em"); cur.textContent = "";
-  exprEl.append(cur);
-  let depth = 0;
-  for(const ch of src){ if(ch==="(") depth++; else if(ch===")") depth--; }
-  if(src === ""){ lastVal = null; errMsg = ""; resEl.textContent = "0"; }
-  else {
-    try{ lastVal = evaluate(src); errMsg = ""; resEl.textContent = fmt(lastVal); }
-    catch(e){ errMsg = String(e); }
-  }
-  fitRes();
-  barL.textContent = errMsg ? errMsg : depth>0 ? "( ".repeat(depth).trim() : "";
-  barR.textContent = mode==="calc" ? (view==="notes" ? "" : "") : mode.toUpperCase();
+
+/** "rgb(r, g, b)" → the same colour at the given alpha, for unlit dots. */
+function inkAlpha(col, a){
+  const m = col.match(/(\d+(?:\.\d+)?)/g);
+  return m && m.length >= 3 ? `rgba(${m[0]},${m[1]},${m[2]},${a})` : col;
 }
+
+function paintDisplay(ast){
+  const box = dotsEl.parentNode.getBoundingClientRect();
+  const cssW = Math.max(24, box.width - 2), cssH = Math.max(16, box.height - 2);
+  const dot  = Math.max(3, Math.min(12, Math.floor(cssH / 32)));
+  const cols = Math.max(8, Math.floor(cssW / dot));
+  const rows = Math.max(8, Math.floor(cssH / dot));
+  const g = dotGrid(cols, rows);
+
+  const exprBox = src === "" ? null
+    : (ast ? dotBox(ast, 0)
+           : bRun(src.replace(/√/g,"").replace(/π/g,"p").replace(/[^0-9.+\-*\/()%^]/g,"")));
+  const ansBox = src === "" ? bRun("0")
+    : (lastVal !== null && !errMsg)
+        ? ((lastExact && !showDecimal) ? dotBox(exToNode(lastExact), 0)
+                                       : bRun(fmt(lastVal).replace(/−/g,"-")))
+        : null;
+  const caret = (g, x, base, box) => {
+    for(let r = base + Math.min(box.top, -6); r <= base + Math.max(box.bot, 0); r++) g.set(x, r);
+  };
+
+  // Expression left, answer right, on one line where they both fit — that's how
+  // a real one lays it out. Otherwise the answer drops to its own row below.
+  const oneLine = exprBox && ansBox &&
+    exprBox.w + 2 + ansBox.w + 6 <= cols &&
+    Math.max(exprBox.bot, ansBox.bot) - Math.min(exprBox.top, ansBox.top) + 3 <= rows;
+
+  if(oneLine){
+    const base = 1 - Math.min(exprBox.top, ansBox.top);
+    exprBox.paint(g, 0, base);
+    caret(g, exprBox.w + 1, base, exprBox);
+    ansBox.paint(g, cols - ansBox.w - 1, base);
+  } else {
+    let below = 1;
+    if(exprBox){
+      const base = 1 - exprBox.top;
+      // when it outgrows the line, slide left so the end you're typing stays on
+      const x = exprBox.w + 2 <= cols ? 0 : cols - exprBox.w - 2;
+      exprBox.paint(g, x, base);
+      caret(g, x + exprBox.w + 1, base, exprBox);
+      below = base + exprBox.bot + 3;
+    }
+    if(ansBox){
+      const base = Math.min(below - ansBox.top, rows - 2 - ansBox.bot);
+      if(base + ansBox.bot < rows) ansBox.paint(g, Math.max(0, cols - ansBox.w - 1), base);
+    }
+  }
+
+  const cs = getComputedStyle(dotsEl.parentNode);
+  const ink = cs.color;
+  paintDots(dotsEl, g, ink, chromeOn ? inkAlpha(ink, 0.17) : null, dot,
+            window.devicePixelRatio || 1);
+}
+
+function refresh(){
+  let ast = null;
+  errMsg = ""; lastVal = null; lastExact = null;
+
+  if(src !== ""){
+    try{ ast = parseExpr(src); }
+    catch(e){ errMsg = String(e); }
+    if(ast){
+      try{
+        lastVal = evalNum(ast);
+        if(!isFinite(lastVal)) throw "overflow";
+        try{ lastExact = evalExact(ast); }catch(_){ lastExact = null; }
+      }catch(e){ errMsg = String(e); lastVal = null; }
+    }
+  }
+  if(view !== "notes") paintDisplay(ast);
+
+  let depth = 0;
+  for(const ch of src){ if(ch === "(") depth++; else if(ch === ")") depth--; }
+  barL.textContent = errMsg ? errMsg : depth > 0 ? "(".repeat(depth) : "";
+  // MATH while the answer is the exact one; DEC once = has been pressed again
+  barC.textContent = (lastExact && !showDecimal) || lastVal === null ? "MATH" : "DEC";
+  barR.textContent = mode === "calc" ? (answered ? "=" : "") : mode.toUpperCase();
+}
+
+/** What an answer looks like as input, for chaining. */
+function ansInput(){
+  if(lastExact) return exToInput(lastExact);
+  if(lastVal !== null && isFinite(lastVal)) return fmt(lastVal);
+  return null;
+}
+
 function press(id){
   if(id==="notes"){ view = view==="notes" ? "calc" : "notes"; showNote(); draw(); return; }
   if(view==="notes"){
@@ -942,17 +1413,29 @@ function press(id){
   const APPEND = {"0":"0","1":"1","2":"2","3":"3","4":"4","5":"5","6":"6","7":"7",
     "8":"8","9":"9","00":"00","dot":".","add":"+","sub":"-","mul":"*","div":"/",
     "pow":"^","lpar":"(","rpar":")","sqrt":"√","pi":"π","pct":"%"};
-  if(id in APPEND){ src += APPEND[id]; }
-  else if(id==="del"){ src = src.slice(0,-1); }
-  else if(id==="eq"){
-    if(errMsg || lastVal===null) { refresh(); return; }
-    src = fmt(lastVal);
+  const OPS = new Set(["add","sub","mul","div","pow","pct","rpar"]);
+
+  if(id in APPEND){
+    if(answered){
+      // an operator continues from the answer; anything else starts fresh
+      const ans = OPS.has(id) ? ansInput() : null;
+      src = ans !== null ? ans + APPEND[id] : APPEND[id];
+      answered = false; showDecimal = false;
+    } else src += APPEND[id];
   }
-  else if(id==="prev"){ /* reserved: cursor left */ }
-  else if(id==="next"){ /* reserved: cursor right */ }
+  else if(id==="del"){
+    if(answered){ answered = false; showDecimal = false; }
+    else src = src.slice(0,-1);
+  }
+  else if(id==="eq"){
+    if(errMsg || lastVal === null){ refresh(); return; }
+    if(answered) showDecimal = !showDecimal;      // press = again for S⇔D
+    else answered = true;
+  }
+  else if(id==="prev" || id==="next"){ /* reserved: cursor */ }
   refresh();
 }
-function clearAll(){ src=""; lastVal=null; errMsg=""; refresh(); }
+function clearAll(){ src=""; lastVal=null; lastExact=null; errMsg=""; answered=false; showDecimal=false; refresh(); }
 function parseNotes(){
   const pages = S.notes.split(/^---$/m).map(b=>b.trim()).filter(Boolean);
   return pages.length ? pages : ["EMPTY\nNo pages yet."];
@@ -983,6 +1466,7 @@ function showNote(){
   }
   noteB.textContent = rest.replace(IMG_RE, "").trim();
   barL.textContent = "notes";
+  barC.textContent = "";
   barR.textContent = (notePage+1) + " / " + pages.length;
 }
 $("#noteImg").addEventListener("error", ()=>{
@@ -1106,9 +1590,9 @@ function markTarget(){
   KEYS.forEach(k=>keysEl.querySelector('[data-id="'+k.id+'"]').classList.remove("target"));
   const k = KEYS[cal.i];
   keysEl.querySelector('[data-id="'+k.id+'"]').classList.add("target");
-  resEl.textContent = k.label;
-  exprEl.textContent = "press on case";
-  barL.textContent = "calibrating"; barR.textContent = (cal.i+1)+" / "+KEYS.length;
+  barC.textContent = k.label;
+  barL.textContent = "calibrating"; barC.textContent = "";
+  barR.textContent = (cal.i+1)+" / "+KEYS.length;
 }
 function startCal(){
   cal = {i:0}; S.measured = {};
