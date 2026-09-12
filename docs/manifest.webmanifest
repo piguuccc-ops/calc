@@ -1,0 +1,17 @@
+{
+  "name": "Calculator Case Rig",
+  "short_name": "Calc Case",
+  "description": "Millimetre-accurate keypad and calibration rig for a 3D-printed calculator phone case.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "portrait",
+  "background_color": "#D5D7CE",
+  "theme_color": "#1A1D19",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
