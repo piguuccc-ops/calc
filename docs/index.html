@@ -147,6 +147,20 @@ button{font:inherit; color:inherit; cursor:pointer}
 }
 #stage[data-bar="on"] #keys, #stage[data-bar="on"] #lcd{opacity:.22}
 
+/* ---- blackout: the case is on ----
+   On an OLED panel a #000000 pixel is switched off, so nothing escapes through
+   the gaps around the buttons. Everything but the display window goes to true
+   black; the keys stay exactly where they are and still register. */
+#stage[data-black="on"]{background:#000}
+#stage[data-black="on"] .key{
+  background:#000; color:#000; box-shadow:none; outline:none; filter:none;
+}
+#stage[data-black="on"] #lcd{
+  background:#000; border-color:#000; box-shadow:none;
+}
+#stage[data-black="on"] #noteImg{opacity:.92}
+body.black{background:#000}
+
 .dot{position:absolute; border-radius:50%; border:1px solid var(--accent);
   background:color-mix(in srgb,var(--accent) 26%,transparent); pointer-events:none}
 .dot.live{border-color:var(--lcd-ink); background:color-mix(in srgb,var(--lcd-ink) 34%,transparent)}
@@ -471,6 +485,20 @@ const DEFAULTS = {
 
 /* ---- build guide, paged in the settings sheet ---- */
 const GUIDE = [
+ { t:"Blackout with the case on", html:`
+   <p>The <b>◎</b> button hides the tabs and takes the whole panel to <b>#000000</b> — every
+   key, the chassis, the display ground. On an OLED a black pixel is a pixel that's switched
+   off, so no light escapes through the gaps around the buttons. Only the digits and the
+   expression stay lit.</p>
+   <ul>
+   <li>The keys are still exactly where they were and still register — they're invisible, not
+   disabled.</li>
+   <li>To come back: <b>tap the display window three times</b>. Nothing else on screen responds,
+   and the window is the one part you can reach through the case.</li>
+   <li>Warnings and toasts are suppressed while blacked out, so nothing can flash at you
+   mid-calculation.</li>
+   </ul>` },
+
  { t:"Getting it on the phone", html:`
    <p>Open <b>claude.ai</b> in Chrome on the phone, signed in as the same account, and open this
    page from the artifacts gallery. Then, in order:</p>
@@ -621,7 +649,7 @@ const GUIDE = [
    <li>What you want on the note pages — the <b>Notes</b> tab writes what the Notes key shows
    through the window.</li>
    </ul>
-   <p class="stamp">13 pages · updated 12 Sep 2026 · grows as the build moves</p>` }
+   <p class="stamp">14 pages · updated 12 Sep 2026 · grows as the build moves</p>` }
 ];
 let S = Object.assign({}, DEFAULTS);
 try{ const raw = localStorage.getItem("caseRig2"); if(raw) S = Object.assign(S, JSON.parse(raw)); }catch(e){}
@@ -646,7 +674,19 @@ const KEYS = [
 ];
 
 let mode="calc", view="calc", chromeOn=true, maskOn=false, edgeOn=false, barOn=false;
-let vpWarned = false;
+let vpWarned = false, baseResPx = 24;
+
+/* A 12-digit answer is wider than a 62 mm window, so step the readout down
+   until it fits rather than clipping the last digits off the right edge. */
+function fitRes(){
+  let size = baseResPx;
+  resEl.style.fontSize = size + "px";
+  let guard = 40;
+  while(resEl.scrollWidth > resEl.clientWidth && size > 11 && guard--){
+    size -= 1;
+    resEl.style.fontSize = size + "px";
+  }
+}
 let cal=null, contacts=[], contactSeq=0, misses=0, wakeLock=null;
 let notePage=0, holdTimer=null;
 
@@ -754,7 +794,7 @@ function draw(){
     el.style.width = d.winW*f.p+"px"; el.style.height = d.winH*f.p+"px";
   }
   const H = d.winH*f.p;
-  resEl.style.fontSize = Math.max(16, Math.min(H*0.30, 54))+"px";
+  baseResPx = Math.max(16, Math.min(H*0.30, 54)); fitRes();
   exprEl.style.fontSize = Math.max(10, Math.min(H*0.115, 20))+"px";
   noteB.style.fontSize = Math.max(9, Math.min(H*0.098, 16))+"px";
   winFrame.style.display = mode==="layout" ? "block" : "none";
@@ -774,6 +814,7 @@ function draw(){
 
   stage.dataset.mode = mode; stage.dataset.view = view;
   stage.dataset.bar = barOn ? "on" : "off";
+  stage.dataset.black = chromeOn ? "off" : "on";
   const bar = $("#calBar");
   if(barOn){
     const bw = CARD_MM*f.p;
@@ -885,6 +926,7 @@ function refresh(){
     try{ lastVal = evaluate(src); errMsg = ""; resEl.textContent = fmt(lastVal); }
     catch(e){ errMsg = String(e); }
   }
+  fitRes();
   barL.textContent = errMsg ? errMsg : depth>0 ? "( ".repeat(depth).trim() : "";
   barR.textContent = mode==="calc" ? (view==="notes" ? "" : "") : mode.toUpperCase();
 }
@@ -977,7 +1019,14 @@ function fire(clientX, clientY, touch){
     renderTouch(); draw(); return;
   }
   const k = nearest(mm, f.d);
-  if(!k) return;
+  if(!k){
+    // nothing there — was it the display window? three taps brings the tabs back.
+    // This has to live here, not on a click handler: the stage calls
+    // preventDefault on touchstart, so no click is ever synthesised on a phone.
+    if(!cal && mm.x >= 0 && mm.x <= f.d.winW && mm.y >= f.d.top && mm.y <= f.d.winBottom)
+      winTap();
+    return;
+  }
   if(cal){ recordCal(k, mm); return; }
   const now = performance.now();
   if(lastHit[k.id] && now - lastHit[k.id] < S.debounceMs) return;
@@ -1317,6 +1366,7 @@ $("#copyDump").addEventListener("click", async e=>{
 });
 let toastT = null;
 function toast(html, ms){
+  if(!chromeOn) return;              // blacked out: nothing may light up
   const t = $("#toast");
   t.innerHTML = html; t.classList.add("on");
   clearTimeout(toastT);
@@ -1350,15 +1400,30 @@ $("#btnHide").addEventListener("click", ()=>toggleChrome(false));
 function toggleChrome(show){
   chromeOn = show===undefined ? !chromeOn : show;
   $("#tabs").style.display = chromeOn ? "flex" : "none";
-  if(!chromeOn){ panel.classList.remove("open"); mode="calc"; }
+  document.body.classList.toggle("black", !chromeOn);
+  if(!chromeOn){
+    panel.classList.remove("open"); mode = "calc";
+    $("#toast").classList.remove("on");
+    draw(); view==="notes" ? showNote() : refresh();
+    // the way back has to be visible through the window, because nothing else is
+    barL.textContent = "tap here 3× to exit";
+    setTimeout(()=>{
+      if(!chromeOn && barL.textContent === "tap here 3× to exit"){
+        view === "notes" ? showNote() : refresh();
+      }
+    }, 4000);
+    return;
+  }
   draw(); view==="notes" ? showNote() : refresh();
 }
 let taps=0, tapT=0;
-lcd.addEventListener("click", ()=>{
+function winTap(){
   const now = Date.now();
-  taps = (now - tapT < 600) ? taps+1 : 1; tapT = now;
-  if(taps>=3){ taps=0; toggleChrome(true); setMode("calc"); }
-});
+  taps = (now - tapT < 800) ? taps+1 : 1; tapT = now;
+  if(!chromeOn && taps === 1) barL.textContent = "tap 2 more";
+  else if(!chromeOn && taps === 2) barL.textContent = "once more";
+  if(taps >= 3){ taps = 0; toggleChrome(true); setMode("calc"); }
+}
 $("#wakeTog").addEventListener("click", async e=>{
   try{
     if(wakeLock){ await wakeLock.release(); wakeLock=null; e.target.textContent="Keep screen awake"; }
