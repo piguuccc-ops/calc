@@ -172,20 +172,14 @@ button{font:inherit; color:inherit; cursor:pointer}
 
 /* ---- blackout: the case is on ----
    On an OLED panel a #000000 pixel is switched off, so nothing escapes through
-   the gaps around the buttons. Everything but the display window goes to true
-   black; the keys stay exactly where they are and still register. */
+   the gaps around the buttons. The chassis and every key go to true black —
+   the keys stay where they are and still register. The display window keeps
+   its green ground: it sits in the case's cutout, where light is the point. */
 #stage[data-black="on"]{background:#000}
 #stage[data-black="on"] .key{
   background:#000; color:#000; box-shadow:none; outline:none; filter:none;
 }
-#stage[data-black="on"] #lcd{
-  background:#000; border-color:#000; box-shadow:none;
-}
-#stage[data-black="on"] #lcdInner,
-#stage[data-black="on"] #noteBody{color:#B9D9A6}
-#stage[data-black="on"] #bar{color:#5C7150}
-#stage[data-black="on"] #noteTitle{color:#E0982F}
-#stage[data-black="on"] #noteImg{opacity:.92}
+#stage[data-black="on"] #lcd{border-color:#000}
 body.black{background:#000}
 
 .dot{position:absolute; border-radius:50%; border:1px solid var(--accent);
@@ -1365,7 +1359,7 @@ function paintDisplay(ast){
 
   const cs = getComputedStyle(dotsEl.parentNode);
   const ink = cs.color;
-  paintDots(dotsEl, g, ink, chromeOn ? inkAlpha(ink, 0.17) : null, dot,
+  paintDots(dotsEl, g, ink, inkAlpha(ink, 0.17), dot,
             window.devicePixelRatio || 1);
 }
 
